@@ -10,7 +10,16 @@ set(SOURCE_FILES main.cpp
         logic/Matrix.cpp
         logic/Matrix.h
         UI/UIElement.cpp
-        UI/UIElement.h)
+        UI/UIElement.h
+        logic/Sand.cpp
+        logic/Sand.h
+        util/Coordinate.cpp
+        util/Coordinate.h
+        util/Random.hpp
+        Application.cpp
+        Application.h
+        UI/ColorGradient.cpp
+        UI/ColorGradient.h)
 add_executable(falling_sands ${SOURCE_FILES})
 message(SDL2)
 target_link_libraries(falling_sands

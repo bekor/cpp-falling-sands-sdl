@@ -4,16 +4,24 @@
 
 #pragma once
 #include <vector>
+#include "Sand.h"
 
-using T_Mtx = std::vector<std::vector<bool>>;
+using T_Mtx = std::vector<std::vector<Sand>>;
 class Matrix {
  public:
   explicit Matrix(int size);
-  void mark(int x, int y);
-  const T_Mtx& getRepresentation() const;
-  int getSize() const;
+  void mark(Coordinate coordinate);
+  bool marked(Coordinate coordinate) const;
+  [[nodiscard]] const T_Mtx& getRepresentation() const;
+  [[nodiscard]] int getSize() const;
+  void update();
 
  private:
   T_Mtx matrix;
   const int size;
+  void propagateFall(int row, int column);
+  Coordinate selectSlope(int row, int column) const;
+  bool isSlopeAvailable(int row, int column) const;
+  bool isLeftSlopeFree(int row, int column) const;
+  bool isRightSlopeFree(int row, int column) const;
 };

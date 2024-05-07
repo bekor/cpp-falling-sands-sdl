@@ -3,6 +3,8 @@
 //
 #include <iostream>
 #include "UIRenderer.h"
+#include "UIElement.h"
+#include "ColorGradient.h"
 UIRenderer::UIRenderer(int width, int height, const std::shared_ptr<Matrix> matrix) : matrix(matrix) {
   initWindow(width, height);
   initRenderer();
@@ -49,13 +51,11 @@ void UIRenderer::initTexture() {
 void UIRenderer::render() {
   //First clear the renderer
   SDL_RenderClear(renderer_.get());
-//  SDL_RenderCopy(renderer_.get(), texture_.get(), nullptr, nullptr);
   SDL_CreateTexture(renderer_.get(), SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STREAMING, 0,0 );
-  for (auto rect : rects) {
-    SDL_SetRenderDrawColor(renderer_.get(), 255, 255, 255, 255);
-    SDL_RenderDrawRect(renderer_.get(), &rect);
-//    SDL_RenderFillRect(renderer_.get(), &rect);
-  }
+  int width, height;
+  SDL_GetWindowSize(window_.get(), &width, &height);
+  SDL_SetRenderDrawColor(renderer_.get(), 255, 255, 255, 255);
+  renderMatrix();
   SDL_SetRenderDrawColor(renderer_.get(), 0, 0, 0, 255);
   //Update the screen
   SDL_RenderPresent(renderer_.get());
@@ -72,9 +72,9 @@ void UIRenderer::generateRects() {
   int fromX = 0;
   int fromY = 0;
 
-  for (const auto &line : data) {
-    for (const auto &cell : line) {
-      SDL_Rect current{fromX, fromY, rectWidth, rectHeight};
+  for (int row = 0; row < data.size(); ++row) {
+    for (int column = 0; column < data.at(row).size(); ++column) {
+      UIElement current{{row, column}, {fromX, fromY, rectWidth, rectHeight}};
       rects.push_back(current);
       fromX += rectWidth;
     }
@@ -84,10 +84,29 @@ void UIRenderer::generateRects() {
 }
 void UIRenderer::handleClick(const SDL_MouseButtonEvent &event) {
   SDL_Point point{event.x, event.y};
-  for (auto &rect : rects) {
-    if (SDL_PointInRect(&point, &rect) == SDL_TRUE){
-      std::cout << point.x << " " << point.y << std::endl;
-      SDL_RenderFillRect(renderer_.get(), &rect);
+  for (auto &element : rects) {
+    if (element.pointInElement(point)) {
+      matrix->mark(element.getCoordinate());
+    }
+  }
+}
+void UIRenderer::renderMatrix() {
+  auto matrixSize = matrix->getSize();
+  ColorGradient gradient;
+
+  for (int row = 0; row < matrixSize; ++row) {
+    for (int column = 0; column < matrixSize; ++column) {
+      int position = matrixSize * row + column;
+      auto rect = rects.at(position);
+      if (matrix->marked({row, column})){
+        gradient.shift();
+        const auto [r,g,b] = gradient;
+        SDL_SetRenderDrawColor(renderer_.get(), r, g, b, 255);
+        SDL_RenderFillRect(renderer_.get(), rect.get());
+        SDL_SetRenderDrawColor(renderer_.get(), 255, 255, 255, 255);
+      }
+      else
+        SDL_RenderDrawRect(renderer_.get(), rect.get());
     }
   }
 }

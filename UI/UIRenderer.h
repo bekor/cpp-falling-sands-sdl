@@ -6,6 +6,7 @@
 #include <memory>
 #include <SDL.h>
 #include "../logic/Matrix.h"
+#include "UIElement.h"
 
 struct sdl_deleter {
   void operator()(SDL_Window* p) const { SDL_DestroyWindow(p); }
@@ -23,10 +24,11 @@ class UIRenderer {
   std::unique_ptr<SDL_Window, sdl_deleter> window_;
   std::unique_ptr<SDL_Renderer, sdl_deleter> renderer_;
   std::unique_ptr<SDL_Texture, sdl_deleter> texture_;
-  std::vector<SDL_Rect> rects;
+  std::vector<UIElement> rects;
   const std::shared_ptr<Matrix> matrix;
   void initWindow(int width, int height);
   void initRenderer();
   void initTexture();
   void generateRects();
+  void renderMatrix();
 };

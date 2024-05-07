@@ -4,9 +4,16 @@
 
 #pragma once
 #include <SDL.h>
+#include <utility>
+#include "../util/Coordinate.h"
 class UIElement {
  public:
-  UIElement(SDL_Rect rect);
+  explicit UIElement(Coordinate coordinate, SDL_Rect rect);
+  bool pointInElement(SDL_Point point);
+  [[nodiscard]] Coordinate getCoordinate() const;
+  bool marked();
+  const SDL_Rect *get();
  private:
+  const Coordinate coords;
   SDL_Rect rect_;
 };
