@@ -2,9 +2,11 @@
 // Created by Joe Bekor on 2024. 01. 30..
 //
 #include <iostream>
+#include <map>
 #include "UIRenderer.h"
 #include "UIElement.h"
-#include "ColorGradient.h"
+#include "ColorGradient.hpp"
+
 UIRenderer::UIRenderer(int width, int height, const std::shared_ptr<Matrix> matrix) : matrix(matrix) {
   initWindow(width, height);
   initRenderer();
@@ -92,21 +94,27 @@ void UIRenderer::handleClick(const SDL_MouseButtonEvent &event) {
 }
 void UIRenderer::renderMatrix() {
   auto matrixSize = matrix->getSize();
-  ColorGradient gradient;
+  std::map<TimeStamp, std::pair<int,int>> markedPoints;
 
   for (int row = 0; row < matrixSize; ++row) {
     for (int column = 0; column < matrixSize; ++column) {
       int position = matrixSize * row + column;
       auto rect = rects.at(position);
       if (matrix->marked({row, column})){
-        gradient.shift();
-        const auto [r,g,b] = gradient;
-        SDL_SetRenderDrawColor(renderer_.get(), r, g, b, 255);
-        SDL_RenderFillRect(renderer_.get(), rect.get());
-        SDL_SetRenderDrawColor(renderer_.get(), 255, 255, 255, 255);
+        markedPoints[matrix->getTimeStamp({row, column})] = std::make_pair(row, column);
       }
-      else
-        SDL_RenderDrawRect(renderer_.get(), rect.get());
+      SDL_RenderDrawRect(renderer_.get(), rect.get());
     }
+  }
+  ColorGradient gradient;
+  for(const auto & points: markedPoints){
+    auto [row, column] = points.second;
+    int position = matrixSize * row + column;
+    auto rect = rects.at(position);
+    gradient.shift();
+    const auto [r,g,b] = gradient;
+    SDL_SetRenderDrawColor(renderer_.get(), r, g, b, 255);
+    SDL_RenderFillRect(renderer_.get(), rect.get());
+    SDL_SetRenderDrawColor(renderer_.get(), 255, 255, 255, 255);
   }
 }
